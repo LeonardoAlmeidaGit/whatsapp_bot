@@ -49,8 +49,8 @@ services:
       - redis
     restart: always
     volumes:
-      - ./vectorstore_data://app/vectorstore
-      - ./rag_files://app/rag_files
+      - ./vectorstore_data:/app/vectorstore
+      - ./rag_files:/app/rag_files
 
 volumes:
   evolution_instances:

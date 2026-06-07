@@ -16,7 +16,7 @@ from prompts import contextualize_prompt, qa_prompt
 def get_rag_chain():
     llm = ChatOpenAI(
         model=OPENAI_MODEL_NAME,
-        temperature=OPENAI_MODEL_TEMPERATURE,
+        temperature=float(OPENAI_MODEL_TEMPERATURE),
     )
     retriever = get_vectorstore().as_retriever()
     history_aware_chain = create_history_aware_retriever(llm, retriever, contextualize_prompt)
@@ -25,6 +25,7 @@ def get_rag_chain():
         prompt=qa_prompt,
     )
     return create_retrieval_chain(history_aware_chain, question_answer_chain)
+
 
 def get_conversational_rag_chain():
     rag_chain = get_rag_chain()
