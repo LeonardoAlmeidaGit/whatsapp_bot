@@ -23,7 +23,7 @@ async def add_to_waiting_list(chat_id):
     log(f'Paciente {chat_id} adicionado à lista de espera por {WAITING_LIST_TTL}s')
 
 
-async def is_in_waiting_list(chat_id):
+async def is_in_waiting_list(chat_id) -> bool:
     waiting_key = f'{chat_id}{WAITING_LIST_KEY_SUFFIX}'
     return await redis_client.exists(waiting_key) == 1
 
