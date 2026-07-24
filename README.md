@@ -2,6 +2,8 @@
 
 Chatbot de atendimento para consultório médico, integrado ao WhatsApp, com respostas baseadas em IA e em documentos da clínica (RAG).
 
+> ℹ️ Este repositório é uma versão pública e **anonimizada** de um projeto real, sem dados, prompts ou identificação do cliente.
+
 ---
 
 ## 🎯 Objetivo
@@ -43,20 +45,32 @@ Projeto pensado para **clínicas de pequeno porte**, com foco em simplicidade e 
 
 ```bash
 .
-├── app.py
-├── chains.py
-├── config.py
-├── dockercompose.yml
-├── evolution_api.py
-├── memory.py
-├── message_buffer.py
-├── prompts.py
+├── app.py                 # Aplicação FastAPI e endpoint do webhook
+├── message_buffer.py      # Buffer de mensagens com debounce (Redis)
+├── chains.py              # Montagem da cadeia RAG conversacional
+├── vectorstore.py         # Carga de documentos e base vetorial (ChromaDB)
+├── memory.py              # Histórico de conversa por sessão (Redis)
+├── waiting_list.py        # Fila de espera para agendamento (Redis + TTL)
+├── evolution_api.py       # Integração de envio de mensagens (Evolution API)
+├── prompts.py             # Templates de prompt
+├── config.py              # Carregamento das variáveis de ambiente
+├── rag_files/             # Documentos-fonte para o RAG (.pdf e .txt)
+├── Dockerfile
+├── docker-compose.yml
 ├── requirements.txt
-├── vectorstore.py
-├── waiting_list.py
+├── requirements_dev.txt
+├── .flake8
 ├── .env.example
 └── .gitignore
 ```
+
+---
+
+## 📋 Pré-requisitos
+
+- **Docker** e **Docker Compose** instalados
+- Uma **chave de API da OpenAI**
+- Um **número de WhatsApp** para parear com a Evolution API (que sobe junto no Docker Compose)
 
 ---
 
@@ -64,36 +78,39 @@ Projeto pensado para **clínicas de pequeno porte**, com foco em simplicidade e 
 
 Este projeto já possui um arquivo **`.env.example`** com as variáveis necessárias.
 
-1. Crie o `.env` com base no exemplo:
-
+**1. Crie o `.env` com base no exemplo:**
 ```bash
 cp .env.example .env
 ```
 
-2. Preencha os valores reais no `.env` (chaves, prompts e credenciais).
+**2. Preencha os valores reais no `.env`**, principalmente:
 
-> **Importante:** nunca versione o arquivo `.env` com dados sensíveis.
+- `OPENAI_API_KEY` — sua chave da OpenAI
+- `AUTHENTICATION_API_KEY` — chave de autenticação da Evolution API (defina uma)
+- `EVOLUTION_INSTANCE_NAME` — nome da instância do WhatsApp
+- `CLINIC_NAME` e os prompts (`AI_SYSTEM_PROMPT`, `AI_CONTEXTUALIZE_PROMPT`)
+
+> **Importante:** nunca versione o arquivo `.env` com dados sensíveis. Ele já está no `.gitignore`.
 
 ---
 
 ## 🚀 Como executar com Docker
 
-### 1) Subir os serviços
-
+**1. Suba os serviços** (bot, Evolution API, PostgreSQL e Redis):
 ```bash
-docker compose -f dockercompose.yml up --build -d
+docker compose up --build -d
 ```
 
-### 2) Ver logs do bot
-
+**2. Acompanhe os logs do bot:**
 ```bash
-docker compose -f dockercompose.yml logs -f bot
+docker compose logs -f bot
 ```
 
-### 3) Parar os serviços
+**3. Pareie o WhatsApp:** acesse a Evolution API em `http://localhost:8080`, crie/conecte a instância definida em `EVOLUTION_INSTANCE_NAME` lendo o QR Code, e configure o webhook da instância para apontar para o serviço do bot (`http://bot:8000/webhook`).
 
+**4. Parar os serviços:**
 ```bash
-docker compose -f dockercompose.yml down
+docker compose down
 ```
 
 ---
@@ -144,21 +161,27 @@ Payload esperado (exemplo simplificado):
 
 ## 🗂️ Regras de atendimento implementadas
 
-- Mensagem inicial: envia saudação automática no primeiro contato.
-- Debounce: espera alguns segundos para agrupar mensagens enviadas em sequência.
-- Lista de espera: quando a IA retorna o APPOINTMENT_MARKER, o paciente entra em fila temporária (TTL no Redis) para continuidade com secretaria.
+- **Mensagem inicial:** envia saudação automática no primeiro contato.
+- **Debounce:** espera alguns segundos para agrupar mensagens enviadas em sequência.
+- **Lista de espera:** quando a IA retorna o `APPOINTMENT_MARKER`, o paciente entra em fila temporária (TTL no Redis) para continuidade com a secretaria.
 
 ---
 
+<!--
+## 📸 Demonstração
+Adicione aqui um print de uma conversa real (anonimizada) do bot no WhatsApp:
+![Demonstração da conversa](docs/demo.png)
+-->
+
 ## ✅ Status do projeto
 
-- MVP funcional para cenário de clínica pequena, com arquitetura modular e pronta para evolução incremental.
+MVP funcional para cenário de clínica pequena, com arquitetura modular e pronta para evolução incremental.
 
 ---
 
 ## 👨‍💻 Autor
 
-Desenvolvido por **Leonardo**.
+Desenvolvido por **Leonardo Almeida**.
 
 - GitHub: [github.com/LeonardoAlmeidaGit](https://github.com/LeonardoAlmeidaGit)
-- LinkedIn: [linkedin.com/in/leonardoalmeida-](https://www.linkedin.com/in/leonardoalmeida-/)
+- LinkedIn: [linkedin.com/in/leonardo-almeida-dev](https://www.linkedin.com/in/leonardo-almeida-dev/)
